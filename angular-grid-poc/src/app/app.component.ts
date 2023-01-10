@@ -3,7 +3,7 @@ import { FormGroup, FormControl } from "@angular/forms";
 import { MatOption } from '@angular/material/core';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSelect } from '@angular/material/select';
-import { MatSort } from '@angular/material/sort';
+import { MatSort, Sort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { zip } from 'rxjs';
 import { EMPLOYEES } from './data/employee-data';
@@ -30,32 +30,36 @@ export class AppComponent {
   displayedColumns: string[] = ['id', 'first_name', 'last_name', 'gender', 'email'];
 
   genderDropDownList: string[];
-  selected: string[] = [];     
+  selected: string[] = [];
   firstNameDropDownList: string[];
   selectedName: string[] = [];
 
   employeeList: Employee[] = EMPLOYEES;
   dataSource = new MatTableDataSource<Employee>(EMPLOYEES);
-  @ViewChild(MatPaginator, { static: true })  paginator: MatPaginator;
+  @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
   @ViewChild('selectGender') selectGender: MatSelect;
   @ViewChild('selectName') selectName: MatSelect;
   @ViewChild('empTableSort') empTableSort = new MatSort();
 
   constructor() {
- 
+
   }
-  pageChangeEvent(event :Event) {}
+  pageChangeEvent(event: Event) { }
   ngOnInit(): void {
     this.setGenderDropdownList();
     this.setFirstNameDropdownList();
     this.dataSource.data = EMPLOYEES;
-   
+
   }
 
   ngAfterViewInit(): void {
     this.dataSource.data = EMPLOYEES;
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.empTableSort;
+    const sortState: Sort = { active: 'id', direction: 'asc' };
+    this.empTableSort.active = sortState.active;
+    this.empTableSort.direction = sortState.direction;
+    this.empTableSort.sortChange.emit(sortState);
   }
 
   getDisplayColumns(): string[] {
@@ -82,27 +86,27 @@ export class AppComponent {
 
 
   onGenderSelect(option: MatOption<string>): void {
-   MultiSelectUtil.selectAllAndDeselectAll(this.selectGender,option);
+    MultiSelectUtil.selectAllAndDeselectAll(this.selectGender, option);
     if (this.selected.length === 0) {
       this.dataSource.data = this.employeeList;
       return;
-    }  
-   
+    }
+
     this.dataSource.data = this.employeeList.filter(x => this.selected.map(y => y).includes(x.gender));
-  }  
+  }
 
 
   onNameSelect(option: MatOption<string>): void {
-    
-    MultiSelectUtil.selectAllAndDeselectAll(this.selectName,option);
+
+    MultiSelectUtil.selectAllAndDeselectAll(this.selectName, option);
     if (this.selectedName.length === 0) {
       this.dataSource.data = this.employeeList;
       return;
     }
     console.log(this.selectedName)
     console.log(this.firstNameDropDownList.length)
-    console.log(this.employeeList.filter(x => this.selectedName.indexOf(x.first_name) > 0 ))
-    this.dataSource.data = this.employeeList.filter(x => this.selectedName.indexOf(x.first_name) > 0 );
+    console.log(this.employeeList.filter(x => this.selectedName.indexOf(x.first_name) > 0))
+    this.dataSource.data = this.employeeList.filter(x => this.selectedName.indexOf(x.first_name) > 0);
   }
 }
 
