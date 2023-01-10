@@ -106,7 +106,7 @@ export class AppComponent {
     console.log(this.selectedName)
     console.log(this.firstNameDropDownList.length)
     console.log(this.employeeList.filter(x => this.selectedName.indexOf(x.first_name) > 0))
-    this.dataSource.data = this.employeeList.filter(x => this.selectedName.indexOf(x.first_name) > 0);
+    this.dataSource.data = this.employeeList.filter(x => this.selectedName.map(y => y).includes(x.first_name));
   }
 }
 
