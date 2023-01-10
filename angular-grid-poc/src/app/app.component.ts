@@ -3,12 +3,13 @@ import { FormGroup, FormControl } from "@angular/forms";
 import { MatOption } from '@angular/material/core';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSelect } from '@angular/material/select';
+import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { zip } from 'rxjs';
 import { EMPLOYEES } from './data/employee-data';
 import { Employee } from './model/employee';
-import { Project } from './project';
-import { StylePaginatorDirective } from './style-paginator.directive';
+import { MultiSelectUtil } from './utils/multi-select-util';
+
 
 @Component({
   selector: 'app-root',
@@ -24,46 +25,37 @@ export class AppComponent {
     { field: 'gender', header: 'GENDER' },
     { field: 'email', header: 'EMAIL' }
   ];
-  title = 'angular-grid-poc';
-  genderDropDownList: string[];
-  selected: string[] = [];
-  dataSource = new MatTableDataSource<Employee>(EMPLOYEES);
-  employeeList: Employee[] = EMPLOYEES;
-  ALL: string = 'All'
-  myFormControl = new FormControl();
+  //Start
+  ALL: string = 'All';
   displayedColumns: string[] = ['id', 'first_name', 'last_name', 'gender', 'email'];
 
-  @ViewChild(StylePaginatorDirective, { static: true })  paginator: StylePaginatorDirective;
-  allSelected = false;
-  @ViewChild('mySel') skillSel: MatSelect;
-  @ViewChild('matAll') matAll: MatOption;
+  genderDropDownList: string[];
+  selected: string[] = [];     
+  firstNameDropDownList: string[];
+  selectedName: string[] = [];
 
-  pageLength = 100;
-  pageSize = 10;
-  projects: Project[] = [];
-  form: FormGroup;
+  employeeList: Employee[] = EMPLOYEES;
+  dataSource = new MatTableDataSource<Employee>(EMPLOYEES);
+  @ViewChild(MatPaginator, { static: true })  paginator: MatPaginator;
+  @ViewChild('selectGender') selectGender: MatSelect;
+  @ViewChild('selectName') selectName: MatSelect;
+  @ViewChild('empTableSort') empTableSort = new MatSort();
 
   constructor() {
-    this.projects = [
-      new Project("Project 1"),
-      new Project("Project 2")
-    ]
-
-    // Setup form
-    this.form = new FormGroup({
-      project: new FormControl(this.projects)
-    });
+ 
   }
   pageChangeEvent(event :Event) {}
   ngOnInit(): void {
     this.setGenderDropdownList();
+    this.setFirstNameDropdownList();
     this.dataSource.data = EMPLOYEES;
    
   }
 
   ngAfterViewInit(): void {
     this.dataSource.data = EMPLOYEES;
-    this.dataSource.paginator = this.paginator.matPag;
+    this.dataSource.paginator = this.paginator;
+    this.dataSource.sort = this.empTableSort;
   }
 
   getDisplayColumns(): string[] {
@@ -78,54 +70,40 @@ export class AppComponent {
 
   setGenderDropdownList(): void {
     this.genderDropDownList = this.employeeList.map(emp => emp.gender).filter(
-      (gender, i, arr) => arr.findIndex(x => x === gender) === i);
+      (gender, i, arr) => arr.findIndex(x => x === gender) === i).sort();
     this.genderDropDownList.unshift('All');
+  }
+
+  setFirstNameDropdownList(): void {
+    this.firstNameDropDownList = this.employeeList.map(emp => emp.first_name).filter(
+      (name, i, arr) => arr.findIndex(x => x === name) === i).sort();
+    this.firstNameDropDownList.unshift('All');
   }
 
 
   onGenderSelect(option: MatOption<string>): void {
-    this.checkSelectAllCheckBox(option);
-    this.selectDeselectOptionsOnSelection();
+   MultiSelectUtil.selectAllAndDeselectAll(this.selectGender,option);
     if (this.selected.length === 0) {
       this.dataSource.data = this.employeeList;
       return;
-    }
-    const filteredData = this.employeeList;
+    }  
+   
     this.dataSource.data = this.employeeList.filter(x => this.selected.map(y => y).includes(x.gender));
-  }
+  }  
 
-  private checkSelectAllCheckBox(option: MatOption<string>) {
-    if (option.value === 'All' && option.selected) {
-      this.selectAllOption(option.selected);
-    }
-    if (option.value === 'All' && !option.selected) {
-      this.selectAllOption(option.selected);
-    }
-  }
 
-  selectDeselectOptionsOnSelection(): void {
-    const anyOptionDeselected = this.skillSel.options.some(x => x.selected === false);
-    const allOptionSelected = this.skillSel.options.filter(x => x.selected === false && x.value !== 'All');
-    if (anyOptionDeselected) {
-      this.skillSel.options.forEach((item: MatOption) => {
-        if (item.value === 'All') {
-          item.deselect();
-        }
-        if (allOptionSelected.length === 0) {
-          item.select();
-        }
-      });
+  onNameSelect(option: MatOption<string>): void {
+    
+    MultiSelectUtil.selectAllAndDeselectAll(this.selectName,option);
+    if (this.selectedName.length === 0) {
+      this.dataSource.data = this.employeeList;
+      return;
     }
+    console.log(this.selectedName)
+    console.log(this.firstNameDropDownList.length)
+    console.log(this.employeeList.filter(x => this.selectedName.indexOf(x.first_name) > 0 ))
+    this.dataSource.data = this.employeeList.filter(x => this.selectedName.indexOf(x.first_name) > 0 );
   }
-
-  selectAllOption(option: boolean): void {
-    if (option) {
-      this.skillSel.options.forEach((item: MatOption) => item.select());
-    } else {
-      this.skillSel.options.forEach((item: MatOption) => { item.deselect() });
-    }
-  }
-
 }
 
 //https://stackblitz.com/edit/angular-dy9j4m?file=src%2Fapp%2Ftable-pagination-example.ts

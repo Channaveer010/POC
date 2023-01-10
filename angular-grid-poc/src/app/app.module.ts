@@ -14,7 +14,7 @@ import {MatDividerModule} from '@angular/material/divider'
 import {MatCheckboxModule} from '@angular/material/checkbox';
 import { CustomMaterialModule } from './custom-material/custom-material.module';
 import { StylePaginatorDirective } from './style-paginator.directive';
-
+import {MatSortModule} from '@angular/material/sort';
 
 @NgModule({
   declarations: [
@@ -34,7 +34,8 @@ import { StylePaginatorDirective } from './style-paginator.directive';
     MatDividerModule,
     MatCheckboxModule,
     CustomMaterialModule,
-    ReactiveFormsModule    
+    ReactiveFormsModule ,
+    MatSortModule 
   ],
   providers: [],
   bootstrap: [AppComponent],

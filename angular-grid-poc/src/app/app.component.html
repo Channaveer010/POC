@@ -45,9 +45,16 @@
  
   <mat-form-field appearance="fill" >
     <mat-label  >Filter by Gender</mat-label>
-    <mat-select   #mySel  multiple  [(ngModel)]="selected">    
-      
+    <mat-select   #selectGender  multiple  [(ngModel)]="selected">      
       <mat-option  #matOption   (click)="onGenderSelect(matOption)" *ngFor="let gender of genderDropDownList" [value]="gender">{{gender}} </mat-option>      
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="fill" >
+    <mat-label  >Filter by Name</mat-label>
+    <mat-select   #selectName  multiple  [(ngModel)]="selectedName">    
+      
+      <mat-option  #matNameOption   (click)="onNameSelect(matNameOption)" *ngFor="let name of firstNameDropDownList" [value]="name">{{name}} </mat-option>      
     </mat-select>
   </mat-form-field>
 
@@ -56,17 +63,17 @@
   
 
   
-<table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+<table mat-table [dataSource]="dataSource" class="mat-elevation-z8" matSort #empTableSort="matSort">
 
 
 
   <ng-container matColumnDef="id">
-    <th mat-header-cell *matHeaderCellDef> ID </th>
+    <th mat-header-cell *matHeaderCellDef mat-sort-header> ID </th>
     <td mat-cell *matCellDef="let element"> {{element.id}} </td>
   </ng-container>
 
   <ng-container matColumnDef="first_name">
-    <th mat-header-cell *matHeaderCellDef> First Name </th>
+    <th mat-header-cell *matHeaderCellDef mat-sort-header> First Name </th>
     <td mat-cell *matCellDef="let element"> {{element.first_name}} </td>
   </ng-container>
 
@@ -91,10 +98,7 @@
   <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
 </table>
 <mat-paginator [pageSizeOptions]="[5, 10, 20]" #paginator  
-style-paginator  showFirstLastButtons
-[showTotalPages]="5"
-[length]="dataSource.data.length"
-[pageSize]="5">
+ showFirstLastButtons>
   </mat-paginator>
 
  
