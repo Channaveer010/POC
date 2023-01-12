@@ -294,3 +294,8 @@
         justify-content: right;
       } 
   }
+
+
+  .example-chip-list {
+    width: 100%;
+  }

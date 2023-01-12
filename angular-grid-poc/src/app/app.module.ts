@@ -15,6 +15,10 @@ import {MatCheckboxModule} from '@angular/material/checkbox';
 import { CustomMaterialModule } from './custom-material/custom-material.module';
 import { StylePaginatorDirective } from './style-paginator.directive';
 import {MatSortModule} from '@angular/material/sort';
+import {MatChipsModule} from '@angular/material/chips';
+import {MatListModule} from '@angular/material/list';
+import {MatAutocompleteModule} from '@angular/material/autocomplete';
+import {MatIconModule} from '@angular/material/icon';
 
 @NgModule({
   declarations: [
@@ -35,7 +39,13 @@ import {MatSortModule} from '@angular/material/sort';
     MatCheckboxModule,
     CustomMaterialModule,
     ReactiveFormsModule ,
-    MatSortModule 
+    MatSortModule ,
+    MatChipsModule,
+    MatListModule,
+    MatAutocompleteModule,
+    MatIconModule
+    
+
   ],
   providers: [],
   bootstrap: [AppComponent],

@@ -1,11 +1,13 @@
-import { AfterViewInit, Component, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ViewChild ,ElementRef} from '@angular/core';
 import { FormGroup, FormControl } from "@angular/forms";
+import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
+import { MatChipInputEvent } from '@angular/material/chips';
 import { MatOption } from '@angular/material/core';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSelect } from '@angular/material/select';
 import { MatSort, Sort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
-import { zip } from 'rxjs';
+import { map, Observable, startWith } from 'rxjs';
 import { EMPLOYEES } from './data/employee-data';
 import { Employee, EmployeeFilterObject } from './model/employee';
 import { MultiSelectUtil } from './utils/multi-select-util';
@@ -44,6 +46,10 @@ export class AppComponent {
 
   constructor() {
 
+    this.filteredFruits = this.fruitCtrl.valueChanges.pipe(
+      startWith(null),
+      map((fruit: string | null) => (fruit ? this._filter(fruit) : this.allFruits.slice())),
+    );
   }
   pageChangeEvent(event: Event) { }
   ngOnInit(): void {
@@ -118,25 +124,37 @@ export class AppComponent {
     //this.dataSource.data = this.employeeList.filter(x => this.selectedName.map(y => y).includes(x.first_name));
   }
 
+
+  customGlobalFilterPredicate() {
+    const globalFilterPredicate = (data: Employee, filter: string): boolean => {
+      if(this.filterObject.globalSearch){
+       return this.filterObject.globalSearch.indexOf(JSON.stringify(filter)) !==-1
+      }
+      return true;
+    }
+
+    return globalFilterPredicate;
+  }
+  
   customFilterPredicate() {
-    const myFilterPredicate = (data: Employee, filter: string): boolean => { 
-     if( this.filterObject.columnValues.gender.length   === 0  && this.filterObject.columnValues.first_name.length ){
+    const columnFilterPredicate = (data: Employee, filter: string): boolean => { 
+     if( this.filterObject.columnValues.gender.length   === 0  && this.filterObject.columnValues.first_name.length ===0 ){
       return true;
      }       
      const filterObj : EmployeeFilterObject = JSON.parse(filter);     
-     if(filterObj.columnValues.gender.includes('All') && filterObj.columnValues.first_name.includes('All') 
+     if(this.filterObject.columnValues.gender.includes('All') && this.filterObject.columnValues.first_name.includes('All') 
      )  
      {
       return true;
      }         
      if(this.filterObject.columnValues.gender.length > 0 && this.filterObject.columnValues.first_name.length > 0 ){
-      return filterObj.columnValues.first_name.includes(data.first_name) &&  filterObj.columnValues.gender.includes(data.gender) 
+      return this.filterObject.columnValues.first_name.includes(data.first_name) &&  this.filterObject.columnValues.gender.includes(data.gender) 
      }
      if(this.filterObject.columnValues.gender.length > 0  ){
-      return  filterObj.columnValues.gender.includes(data.gender) 
+      return  this.filterObject.columnValues.gender.includes(data.gender) 
      }
      if(this.filterObject.columnValues.first_name.length > 0  ){
-      return  filterObj.columnValues.first_name.includes(data.first_name) 
+      return  this.filterObject.columnValues.first_name.includes(data.first_name) 
      }
 
      if(this.filterObject.columnValues.gender.length  === 0  ){
@@ -145,17 +163,62 @@ export class AppComponent {
      if(this.filterObject.columnValues.first_name.length === 0  ){
       return  true;;
      }
-
-
-
-
-     return true;
-    
-     
+     return true;         
     }
-    return myFilterPredicate;
+    return columnFilterPredicate;
   }
 
+  onNameRemoved(name: string ) {
+
+  }
+
+
+  ///////TESTING
+  separatorKeysCodes: number[] = [13 , 188];
+  fruitCtrl = new FormControl('');
+  filteredFruits: Observable<string[]>;
+  fruits: string[] = ['Lemon'];
+  allFruits: string[] = ['Apple', 'Lemon', 'Lime', 'Orange', 'Strawberry'];
+
+  @ViewChild('fruitInput') fruitInput: ElementRef<HTMLInputElement>;
+
+ 
+
+  add(event: MatChipInputEvent): void {
+    const value = (event.value || '').trim();
+
+    // Add our fruit
+    if (value) {
+      this.fruits.push(value);
+    }
+
+    // Clear the input value
+    event.chipInput!.clear();
+
+    this.fruitCtrl.setValue(null);
+  }
+
+  remove(fruit: string): void {
+    const index = this.fruits.indexOf(fruit);
+
+    if (index >= 0) {
+      this.fruits.splice(index, 1);
+    }
+  }
+
+  selectedAuto(event: MatAutocompleteSelectedEvent): void {
+    this.fruits.push(event.option.viewValue);
+    this.fruitInput.nativeElement.value = '';
+    this.fruitCtrl.setValue(null);
+  }
+
+  private _filter(value: string): string[] {
+    const filterValue = value.toLowerCase();
+
+    return this.allFruits.filter(fruit => fruit.toLowerCase().includes(filterValue));
+  }
+
+  //TESTING END
 
   
 }

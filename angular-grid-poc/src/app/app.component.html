@@ -36,27 +36,74 @@
 
 <div class="content" role="main">
 <!-- PROJECT START-->
-
-
- <mat-form-field>
-    <input matInput type="text" (keyup)='applyFilter($event)' placeholder="Global Search">
+ <!-- TTESTING -->
+ <form>
+  <mat-form-field class="example-chip-list" appearance="fill">
+    <mat-label>Favorite Fruits</mat-label>
+    <mat-chip-grid #chipGrid aria-label="Fruit selection">
+      <mat-chip-row *ngFor="let fruit of fruits" (removed)="remove(fruit)">
+        {{fruit}}
+        <button matChipRemove [attr.aria-label]="'remove ' + fruit">
+          <mat-icon>cancel</mat-icon>
+        </button>
+      </mat-chip-row>
+    </mat-chip-grid>
+    <input placeholder="New Fruit..." #fruitInput [formControl]="fruitCtrl"
+      [matChipInputFor]="chipGrid" [matAutocomplete]="auto"
+      [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+      (matChipInputTokenEnd)="add($event)"/>
+    <mat-autocomplete #auto="matAutocomplete" (optionSelected)="selectedAuto($event)">
+      <mat-option *ngFor="let fruit of filteredFruits | async" [value]="fruit">
+        {{fruit}}
+      </mat-option>
+    </mat-autocomplete>
   </mat-form-field>
+</form>
+<!-- TESTING END -->
+
+
+
+<div class="col-lg">
+  <div class="row">
+    <mat-form-field>
+      <input matInput type="text" (keyup)='applyFilter($event)' placeholder="Global Search">
+    </mat-form-field>
+
+    
+  </div>
+  <div class="row">
+    <mat-form-field appearance="fill" style="padding: 5px;">
+      <mat-label  >Filter by Gender</mat-label>
+      <mat-select   #selectGender  multiple  [(ngModel)]="selected">      
+        <mat-option  #matOption   (click)="onGenderSelect(matOption)" *ngFor="let gender of genderDropDownList" [value]="gender">{{gender}} </mat-option>      
+      </mat-select>
+    </mat-form-field>
+  
+    <mat-form-field appearance="fill" >
+      <mat-label  >Filter by Name</mat-label>
+      <mat-select   #selectName  multiple  [(ngModel)]="selectedName">    
+  
+        <!-- <mat-select-trigger>
+          <mat-chip-listbox>
+            <mat-chip-option *ngFor="let name of firstNameDropDownList"
+              [removable]="true" (removed)="onNameRemoved(name)">
+              {{ name }}
+              <mat-icon matChipRemove>cancel</mat-icon>
+            </mat-chip-option>
+            <mat-chip-listbox>
+        </mat-select-trigger> -->
+        
+        <mat-option  #matNameOption   (click)="onNameSelect(matNameOption)" *ngFor="let name of firstNameDropDownList" [value]="name">{{name}} </mat-option>      
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+</div>
 
  
-  <mat-form-field appearance="fill" >
-    <mat-label  >Filter by Gender</mat-label>
-    <mat-select   #selectGender  multiple  [(ngModel)]="selected">      
-      <mat-option  #matOption   (click)="onGenderSelect(matOption)" *ngFor="let gender of genderDropDownList" [value]="gender">{{gender}} </mat-option>      
-    </mat-select>
-  </mat-form-field>
 
-  <mat-form-field appearance="fill" >
-    <mat-label  >Filter by Name</mat-label>
-    <mat-select   #selectName  multiple  [(ngModel)]="selectedName">    
-      
-      <mat-option  #matNameOption   (click)="onNameSelect(matNameOption)" *ngFor="let name of firstNameDropDownList" [value]="name">{{name}} </mat-option>      
-    </mat-select>
-  </mat-form-field>
+ 
+ 
 
 
  
@@ -101,6 +148,8 @@
  showFirstLastButtons>
   </mat-paginator>
 
+
+ 
  
 
 
