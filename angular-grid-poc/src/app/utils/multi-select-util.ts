@@ -53,5 +53,9 @@ export class MultiSelectUtil {
           });
         }
       }
+
+      static checkFilterContainsValue (filter : string [], value : string ) : boolean{
+        return filter.includes(value) || filter.length === 0;
+      }
      
 }

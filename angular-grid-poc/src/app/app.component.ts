@@ -7,7 +7,7 @@ import { MatSort, Sort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { zip } from 'rxjs';
 import { EMPLOYEES } from './data/employee-data';
-import { Employee } from './model/employee';
+import { Employee, EmployeeFilterObject } from './model/employee';
 import { MultiSelectUtil } from './utils/multi-select-util';
 
 
@@ -33,8 +33,9 @@ export class AppComponent {
   selected: string[] = [];
   firstNameDropDownList: string[];
   selectedName: string[] = [];
-
+  filterObject = new EmployeeFilterObject();  
   employeeList: Employee[] = EMPLOYEES;
+
   dataSource = new MatTableDataSource<Employee>(EMPLOYEES);
   @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
   @ViewChild('selectGender') selectGender: MatSelect;
@@ -49,11 +50,16 @@ export class AppComponent {
     this.setGenderDropdownList();
     this.setFirstNameDropdownList();
     this.dataSource.data = EMPLOYEES;
+    this.setTableProperties();
+    this.dataSource.filterPredicate = this.customFilterPredicate();
 
   }
 
-  ngAfterViewInit(): void {
-    this.dataSource.data = EMPLOYEES;
+  ngAfterViewInit(): void {   
+    this.setTableProperties();
+  }
+
+  setTableProperties() {
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.empTableSort;
     const sortState: Sort = { active: 'id', direction: 'asc' };
@@ -88,26 +94,70 @@ export class AppComponent {
   onGenderSelect(option: MatOption<string>): void {
     MultiSelectUtil.selectAllAndDeselectAll(this.selectGender, option);
     if (this.selected.length === 0) {
-      this.dataSource.data = this.employeeList;
+      this.filterObject.columnValues.gender=[]
+      this.dataSource.data = this.employeeList;      
       return;
     }
-
-    this.dataSource.data = this.employeeList.filter(x => this.selected.map(y => y).includes(x.gender));
+   
+    this.filterObject.columnValues.gender = this.selected;
+    this.dataSource.filter = JSON.stringify(this.filterObject)
+   // this.dataSource.data = this.employeeList.filter(x => this.selected.map(y => y).includes(x.gender));
   }
 
 
   onNameSelect(option: MatOption<string>): void {
-
     MultiSelectUtil.selectAllAndDeselectAll(this.selectName, option);
-    if (this.selectedName.length === 0) {
+    if (this.selectedName.length === 0) {      
+      this.filterObject.columnValues.first_name = []
       this.dataSource.data = this.employeeList;
       return;
-    }
-    console.log(this.selectedName)
-    console.log(this.firstNameDropDownList.length)
-    console.log(this.employeeList.filter(x => this.selectedName.indexOf(x.first_name) > 0))
-    this.dataSource.data = this.employeeList.filter(x => this.selectedName.map(y => y).includes(x.first_name));
+    }   
+   
+   this.filterObject.columnValues.first_name = this.selectedName;
+   this.dataSource.filter = JSON.stringify(this.filterObject)
+    //this.dataSource.data = this.employeeList.filter(x => this.selectedName.map(y => y).includes(x.first_name));
   }
+
+  customFilterPredicate() {
+    const myFilterPredicate = (data: Employee, filter: string): boolean => { 
+     if( this.filterObject.columnValues.gender.length   === 0  && this.filterObject.columnValues.first_name.length ){
+      return true;
+     }       
+     const filterObj : EmployeeFilterObject = JSON.parse(filter);     
+     if(filterObj.columnValues.gender.includes('All') && filterObj.columnValues.first_name.includes('All') 
+     )  
+     {
+      return true;
+     }         
+     if(this.filterObject.columnValues.gender.length > 0 && this.filterObject.columnValues.first_name.length > 0 ){
+      return filterObj.columnValues.first_name.includes(data.first_name) &&  filterObj.columnValues.gender.includes(data.gender) 
+     }
+     if(this.filterObject.columnValues.gender.length > 0  ){
+      return  filterObj.columnValues.gender.includes(data.gender) 
+     }
+     if(this.filterObject.columnValues.first_name.length > 0  ){
+      return  filterObj.columnValues.first_name.includes(data.first_name) 
+     }
+
+     if(this.filterObject.columnValues.gender.length  === 0  ){
+      return  true;;
+     }
+     if(this.filterObject.columnValues.first_name.length === 0  ){
+      return  true;;
+     }
+
+
+
+
+     return true;
+    
+     
+    }
+    return myFilterPredicate;
+  }
+
+
+  
 }
 
 //https://stackblitz.com/edit/angular-dy9j4m?file=src%2Fapp%2Ftable-pagination-example.ts
