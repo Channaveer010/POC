@@ -7,6 +7,11 @@ export interface iEmployee {
   ip_address: string
 }
 
+export interface ItemData {
+  item: string;
+  selected: boolean;
+}
+
 export class Employee implements iEmployee {
   private _id: number;
   private _first_name: string;
