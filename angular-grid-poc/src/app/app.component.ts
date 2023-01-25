@@ -1,6 +1,7 @@
 import { AfterViewInit, Component, ViewChild ,ElementRef} from '@angular/core';
 import { FormGroup, FormControl } from "@angular/forms";
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
+import { MatCheckboxChange } from '@angular/material/checkbox';
 import { MatChipInputEvent } from '@angular/material/chips';
 import { MatOption } from '@angular/material/core';
 import { MatPaginator } from '@angular/material/paginator';
@@ -46,9 +47,9 @@ export class AppComponent {
 
   constructor() {
 
-    this.filteredFruits = this.fruitCtrl.valueChanges.pipe(
+    this.filteredFirstName$ = this.fruitCtrl.valueChanges.pipe(
       startWith(null),
-      map((fruit: string | null) => (fruit ? this._filter(fruit) : this.allFruits.slice())),
+      map((fruit: string | null) => (fruit ? this._filter(fruit) : this.firstNameDropDownList.slice())),
     );
   }
   pageChangeEvent(event: Event) { }
@@ -121,7 +122,7 @@ export class AppComponent {
    
    this.filterObject.columnValues.first_name = this.selectedName;
    this.dataSource.filter = JSON.stringify(this.filterObject)
-    //this.dataSource.data = this.employeeList.filter(x => this.selectedName.map(y => y).includes(x.first_name));
+    
   }
 
 
@@ -176,8 +177,10 @@ export class AppComponent {
   ///////TESTING
   separatorKeysCodes: number[] = [13 , 188];
   fruitCtrl = new FormControl('');
-  filteredFruits: Observable<string[]>;
+  filteredFirstName$: Observable<string[]>;
   fruits: string[] = ['Lemon'];
+
+  names: string[] = [];
   allFruits: string[] = ['Apple', 'Lemon', 'Lime', 'Orange', 'Strawberry'];
 
   @ViewChild('fruitInput') fruitInput: ElementRef<HTMLInputElement>;
@@ -189,7 +192,7 @@ export class AppComponent {
 
     // Add our fruit
     if (value) {
-      this.fruits.push(value);
+      this.names.push(value);
     }
 
     // Clear the input value
@@ -198,16 +201,19 @@ export class AppComponent {
     this.fruitCtrl.setValue(null);
   }
 
-  remove(fruit: string): void {
-    const index = this.fruits.indexOf(fruit);
+  remove(name: string): void {
+ 
+
+    const index = this.names.indexOf(name);
 
     if (index >= 0) {
-      this.fruits.splice(index, 1);
+      this.names.splice(index, 1);
     }
+    this.filterNamesWhenSelectedAndDeslected();
   }
 
   selectedAuto(event: MatAutocompleteSelectedEvent): void {
-    this.fruits.push(event.option.viewValue);
+    this.names.push(event.option.viewValue);
     this.fruitInput.nativeElement.value = '';
     this.fruitCtrl.setValue(null);
   }
@@ -215,8 +221,62 @@ export class AppComponent {
   private _filter(value: string): string[] {
     const filterValue = value.toLowerCase();
 
-    return this.allFruits.filter(fruit => fruit.toLowerCase().includes(filterValue));
+    return this.firstNameDropDownList.filter(name => name.toLowerCase().includes(filterValue));
   }
+
+  displayFn = (): string => '';
+
+  optionClicked = (event: Event, data: string): void => {
+    event.stopPropagation();
+    this.toggleSelection(data);
+  };
+
+  onChangeCheckBox(ob: MatCheckboxChange,data: string){    
+    if(data === 'All' &&  ob.checked) {
+      this.firstNameDropDownList.forEach(element => {
+        if(!this.isNamePresent(element)){
+          this.names.push(element); 
+        }
+      });
+    }   
+    else if(data === 'All' &&  !ob.checked) {
+      this.firstNameDropDownList.forEach(element => {
+        this.remove(element);
+      });
+    }  
+    else if(data !== 'All' && this.isNamePresent('All')) {
+      this.remove('All');      
+      this.remove(data);      
+    }         
+    else if(!this.isNamePresent(data)){       
+      this.names.push(data);
+      this.fruitInput.nativeElement.value = '';
+      this.fruitCtrl.setValue(null);
+      
+    }
+    else if (this.isNamePresent(data) && !ob.checked ){
+      this.remove(data);
+    }  
+
+    this.filterNamesWhenSelectedAndDeslected();
+  }
+
+  filterNamesWhenSelectedAndDeslected(){
+    this.filterObject.columnValues.first_name = this.names;
+    this.dataSource.filter = JSON.stringify(this.filterObject)
+  }
+ 
+
+  isNamePresent(selectedName : string ) : boolean {
+   return this.names.filter(name => name.toLowerCase().indexOf(selectedName.toLowerCase()) !==-1).length>0;
+  }
+
+ toggleSelection = (data: string): void => {
+
+​
+};
+
+  
 
   //TESTING END
 
