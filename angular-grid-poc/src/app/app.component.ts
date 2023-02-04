@@ -39,6 +39,7 @@ export class AppComponent {
   filterObject = new EmployeeFilterObject();  
   employeeList: Employee[] = EMPLOYEES;
 
+  globalFilter: string ='';
   dataSource = new MatTableDataSource<Employee>(EMPLOYEES);
   @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
   @ViewChild('selectGender') selectGender: MatSelect;
@@ -59,6 +60,9 @@ export class AppComponent {
     this.dataSource.data = EMPLOYEES;
     this.setTableProperties();
     this.dataSource.filterPredicate = this.customFilterPredicate();
+
+  
+  //this.generateTable()
 
   }
 
@@ -81,8 +85,12 @@ export class AppComponent {
   }
 
   applyFilter(event: Event): void {
-    const filterValue = (event.target as HTMLInputElement).value;
-    this.dataSource.filter = filterValue.trim().toLowerCase();
+    const filterValue = (event.target as HTMLInputElement).value;   
+    
+    this.filterObject.globalSearch = filterValue;
+    this.dataSource.filter = JSON.stringify(this.filterObject)
+    
+    //this.dataSource.filter = filterValue.trim().toLowerCase();
   }
 
   setGenderDropdownList(): void {
@@ -125,24 +133,29 @@ export class AppComponent {
     
   }
 
-
-  customGlobalFilterPredicate() {
-    const globalFilterPredicate = (data: Employee, filter: string): boolean => {
-      if(this.filterObject.globalSearch){
-       return this.filterObject.globalSearch.indexOf(JSON.stringify(filter)) !==-1
-      }
-      return true;
-    }
-
-    return globalFilterPredicate;
+  filterAllColumns(data: Employee) {
+    return data.first_name.toString().trim().toLowerCase().indexOf(this.globalFilter.toLowerCase()) !== -1
+    || data.last_name.toString().trim().toLowerCase().indexOf(this.globalFilter.toLowerCase()) !== -1
+    ||data.email.toString().trim().toLowerCase().indexOf(this.globalFilter.toLowerCase()) !== -1
+    || data.gender.toString().trim().toLowerCase().indexOf(this.globalFilter.toLowerCase()) !== -1;
   }
-  
-  customFilterPredicate() {
+
+  customFilterPredicate() {   
     const columnFilterPredicate = (data: Employee, filter: string): boolean => { 
-     if( this.filterObject.columnValues.gender.length   === 0  && this.filterObject.columnValues.first_name.length ===0 ){
+     const filterObj : EmployeeFilterObject = JSON.parse(filter);  
+     var globalMatch = !this.globalFilter;
+     if(this.globalFilter){
+      globalMatch = this.filterAllColumns(data);
+     }   
+
+     if (!globalMatch) {
+      return false;
+    }
+    
+    if( this.filterObject.columnValues.gender.length   === 0  && this.filterObject.columnValues.first_name.length ===0 ){
       return true;
-     }       
-     const filterObj : EmployeeFilterObject = JSON.parse(filter);     
+     }      
+         
      if(this.filterObject.columnValues.gender.includes('All') && this.filterObject.columnValues.first_name.includes('All') 
      )  
      {
@@ -164,7 +177,7 @@ export class AppComponent {
      if(this.filterObject.columnValues.first_name.length === 0  ){
       return  true;;
      }
-     return true;         
+     return true;  
     }
     return columnFilterPredicate;
   }
@@ -203,6 +216,7 @@ export class AppComponent {
 
   remove(name: string): void {
  
+    
 
     const index = this.names.indexOf(name);
 
@@ -251,7 +265,7 @@ export class AppComponent {
     else if(!this.isNamePresent(data)){       
       this.names.push(data);
       this.fruitInput.nativeElement.value = '';
-      this.fruitCtrl.setValue(null);
+      this.fruitCtrl.setValue(null);      
       
     }
     else if (this.isNamePresent(data) && !ob.checked ){
